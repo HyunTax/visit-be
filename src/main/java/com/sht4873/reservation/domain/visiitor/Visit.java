@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDate;
 
@@ -36,12 +37,7 @@ public class Visit {
 
     public static Visit convertEntity(ReservationRequest request) {
         Visit entity = new Visit();
-        entity.name = request.getName();
-        entity.phoneNum = request.getPhoneNum();
-        entity.visitDate = LocalDate.now();
-        entity.visitorCount = request.getVisitCount();
-        entity.visitorDescription = request.getVisitDescription();
-        entity.momo = request.getMomo();
+        BeanUtils.copyProperties(request, entity);
         return entity;
     }
 }
