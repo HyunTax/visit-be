@@ -14,4 +14,5 @@ public class ReservationRequest {
     private Long visitorCount; // 방문인원
     private String visitorDescription; // 방문자 설명
     private String momo; // 메모
+    private String password; // 비밀번호
 }
