@@ -34,6 +34,9 @@ public class Visit {
     private String visitorDescription;
     @Column(name = "MEMO")
     private String momo;
+    @Column(name = "PASSWORD")
+    @NotNull(message = "비밀번호는 필수입니다.")
+    private String password;
 
     public static Visit convertEntity(ReservationRequest request) {
         Visit entity = new Visit();

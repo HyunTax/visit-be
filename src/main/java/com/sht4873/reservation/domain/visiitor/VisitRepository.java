@@ -5,4 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VisitRepository extends JpaRepository<Visit, Long> {
+    Visit findByNameAndPhoneNum(String name, String phoneNum);
 }
