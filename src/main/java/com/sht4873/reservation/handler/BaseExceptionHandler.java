@@ -1,5 +1,6 @@
 package com.sht4873.reservation.handler;
 
+import com.sht4873.reservation.excrption.VisitException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -24,5 +25,12 @@ public class BaseExceptionHandler {
             errors.put(field, message);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(VisitException.class)
+    public ResponseEntity<Map<String, String>> handleBusiness(VisitException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
