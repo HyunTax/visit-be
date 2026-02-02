@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class ReservationResponse {
+    private Long id;
     private String name; // 이름
     private String phoneNum; // 잔화번호
     private LocalDate visitDate; // 방문일
