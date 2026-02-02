@@ -21,13 +21,13 @@ public class VisitController {
     }
 
     @PostMapping
-    public ResponseEntity<?> reservation(@RequestBody ReservationRequest request) {
+    public ResponseEntity<ReservationResponse> reservation(@RequestBody ReservationRequest request) throws Exception {
         Visit reservation = service.reservation(Visit.convertEntity(request));
         return ResponseEntity.ok(ReservationResponse.convert(reservation));
     }
 
     @GetMapping("/find")
-    public ResponseEntity<?> findReservation(ReservationSearchRequest request) throws Exception {
+    public ResponseEntity<ReservationResponse> findReservation(ReservationSearchRequest request) throws Exception {
         Visit reservation = service.findReservation(request);
         return ResponseEntity.ok(ReservationResponse.convert(reservation));
     }
@@ -36,5 +36,17 @@ public class VisitController {
     public ResponseEntity<List<ReservationResponse>> finaALl() {
         List<ReservationResponse> responses = service.finaAll().stream().map(ReservationResponse::convert).toList();
         return ResponseEntity.ok(responses);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ReservationResponse> updateReservation(@PathVariable Long id, @RequestBody ReservationRequest request) throws Exception {
+        Visit reservation = service.updateReservation(id, Visit.convertEntity(request, "name", "phoneNum", "password"));
+        return ResponseEntity.ok(ReservationResponse.convert(reservation));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelReservation(@PathVariable Long id) throws Exception {
+        service.cancelReservation(id);
+        return ResponseEntity.ok().build();
     }
 }

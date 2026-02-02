@@ -3,7 +3,9 @@ package com.sht4873.reservation.domain.visiitor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface VisitRepository extends JpaRepository<Visit, Long> {
-    Visit findByNameAndPhoneNum(String name, String phoneNum);
+    Optional<Visit> findByNameAndPhoneNum(String name, String phoneNum);
 }
