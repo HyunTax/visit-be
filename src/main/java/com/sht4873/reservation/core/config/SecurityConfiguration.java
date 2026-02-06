@@ -1,4 +1,4 @@
-package com.sht4873.reservation.config;
+package com.sht4873.reservation.core.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.sht4873.reservation.util;
+package com.sht4873.reservation.core.util;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

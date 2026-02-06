@@ -1,4 +1,4 @@
-package com.sht4873.reservation.domain.visiitor;
+package com.sht4873.reservation.domain.visitor;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

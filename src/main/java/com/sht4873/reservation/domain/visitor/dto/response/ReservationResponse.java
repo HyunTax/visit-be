@@ -1,6 +1,6 @@
-package com.sht4873.reservation.domain.visiitor.dto.response;
+package com.sht4873.reservation.domain.visitor.dto.response;
 
-import com.sht4873.reservation.domain.visiitor.Visit;
+import com.sht4873.reservation.domain.visitor.Visit;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.BeanUtils;
