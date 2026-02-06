@@ -1,8 +1,8 @@
-package com.sht4873.reservation.domain.visiitor;
+package com.sht4873.reservation.domain.visitor;
 
-import com.sht4873.reservation.domain.visiitor.dto.request.ReservationSearchRequest;
-import com.sht4873.reservation.excrption.VisitException;
-import com.sht4873.reservation.util.SecurityUtils;
+import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
+import com.sht4873.reservation.core.excrption.VisitException;
+import com.sht4873.reservation.core.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

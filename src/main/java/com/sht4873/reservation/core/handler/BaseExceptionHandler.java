@@ -1,6 +1,6 @@
-package com.sht4873.reservation.handler;
+package com.sht4873.reservation.core.handler;
 
-import com.sht4873.reservation.excrption.VisitException;
+import com.sht4873.reservation.core.excrption.VisitException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;

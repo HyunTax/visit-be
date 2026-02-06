@@ -1,6 +1,6 @@
-package com.sht4873.reservation.domain.visiitor;
+package com.sht4873.reservation.domain.visitor;
 
-import com.sht4873.reservation.domain.visiitor.dto.request.ReservationRequest;
+import com.sht4873.reservation.domain.visitor.dto.request.ReservationRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

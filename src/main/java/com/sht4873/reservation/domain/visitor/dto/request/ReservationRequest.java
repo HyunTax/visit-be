@@ -1,4 +1,4 @@
-package com.sht4873.reservation.domain.visiitor.dto.request;
+package com.sht4873.reservation.domain.visitor.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
