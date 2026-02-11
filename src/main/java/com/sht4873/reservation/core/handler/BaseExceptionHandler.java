@@ -31,6 +31,6 @@ public class BaseExceptionHandler {
     public ResponseEntity<Map<String, String>> handleBusiness(VisitException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        return ResponseEntity.status(ex.getStatus()).body(error);
     }
 }
