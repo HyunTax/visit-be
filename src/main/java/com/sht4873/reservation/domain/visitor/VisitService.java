@@ -1,7 +1,7 @@
 package com.sht4873.reservation.domain.visitor;
 
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
-import com.sht4873.reservation.core.excrption.VisitException;
+import com.sht4873.reservation.core.exception.VisitException;
 import com.sht4873.reservation.core.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +30,7 @@ public class VisitService {
         return repository.save(entity);
     }
 
+    @Transactional(readOnly = true)
     public Visit findReservation(ReservationSearchRequest request) {
         Visit find = repository.findByNameAndPhoneNum(request.getName(), request.getPhoneNum()).orElseThrow(() -> new VisitException("예약 정보 없음"));
         if (securityUtils.nonMatches(request.getPassword(), find.getPassword()))
@@ -37,7 +38,8 @@ public class VisitService {
         return find;
     }
 
-    public List<Visit> finaAll() {
+    @Transactional(readOnly = true)
+    public List<Visit> findAll() {
         return repository.findAll();
     }
 
@@ -50,8 +52,8 @@ public class VisitService {
             find.setVisitorCount(visit.getVisitorCount());
         if (!ObjectUtils.isEmpty(visit.getVisitorDescription()))
             find.setVisitorDescription(visit.getVisitorDescription());
-        if (!ObjectUtils.isEmpty(visit.getMomo()))
-            find.setMomo(visit.getMomo());
+        if (!ObjectUtils.isEmpty(visit.getMemo()))
+            find.setMemo(visit.getMemo());
         return find;
     }
 

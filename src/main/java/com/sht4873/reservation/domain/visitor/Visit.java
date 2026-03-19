@@ -33,7 +33,7 @@ public class Visit {
     @Column(name = "VISIT_DESCRIPTION")
     private String visitorDescription;
     @Column(name = "MEMO")
-    private String momo;
+    private String memo;
     @Column(name = "PASSWORD")
     @NotNull(message = "비밀번호는 필수입니다.")
     private String password;

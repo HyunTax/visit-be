@@ -1,6 +1,7 @@
 package com.sht4873.reservation.domain.visitor;
 
-import com.sht4873.reservation.core.aop.auth.RequireAuth;
+import com.sht4873.reservation.core.annotation.RequireAdmin;
+import com.sht4873.reservation.core.annotation.RequireAuth;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationRequest;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
 import com.sht4873.reservation.domain.visitor.dto.response.ReservationResponse;
@@ -32,9 +33,10 @@ public class VisitController {
         return ResponseEntity.ok(ReservationResponse.convert(reservation));
     }
 
+    @RequireAdmin
     @GetMapping("/all")
-    public ResponseEntity<List<ReservationResponse>> finaALl() {
-        List<ReservationResponse> responses = service.finaAll().stream().map(ReservationResponse::convert).toList();
+    public ResponseEntity<List<ReservationResponse>> findAll() {
+        List<ReservationResponse> responses = service.findAll().stream().map(ReservationResponse::convert).toList();
         return ResponseEntity.ok(responses);
     }
 

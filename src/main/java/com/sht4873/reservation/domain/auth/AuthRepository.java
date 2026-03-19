@@ -28,4 +28,12 @@ public class AuthRepository {
         return redisTemplate.hasKey(KEY_PREFIX + token);
     }
 
+    public String getPhoneNumByToken(String token) {
+        String value = redisTemplate.opsForValue().get(KEY_PREFIX + token);
+        if (value == null) return null;
+        // value 형식: "{name}:{phoneNum}"
+        String[] parts = value.split(":");
+        return parts.length == 2 ? parts[1] : null;
+    }
+
 }

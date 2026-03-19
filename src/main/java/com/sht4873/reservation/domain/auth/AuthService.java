@@ -3,7 +3,7 @@ package com.sht4873.reservation.domain.auth;
 import com.sht4873.reservation.domain.auth.dto.request.AuthRequest;
 import com.sht4873.reservation.domain.visitor.Visit;
 import com.sht4873.reservation.domain.visitor.VisitRepository;
-import com.sht4873.reservation.core.excrption.VisitException;
+import com.sht4873.reservation.core.exception.VisitException;
 import com.sht4873.reservation.core.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +28,11 @@ public class AuthService {
 
     public Boolean verifyKey(String token) {
         return repository.existsByToken(token);
+    }
+
+    public Boolean verifyAdmin(String token, String adminPhoneNum) {
+        String phoneNum = repository.getPhoneNumByToken(token);
+        return adminPhoneNum.equals(phoneNum);
     }
 
     private void verifyRequest(AuthRequest request) {
