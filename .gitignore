@@ -54,3 +54,9 @@ application-*.yaml
 logs/
 *.log
 tmp/
+
+# =====================
+# Claude
+# =====================
+.claude/
+CLAUDE.md
