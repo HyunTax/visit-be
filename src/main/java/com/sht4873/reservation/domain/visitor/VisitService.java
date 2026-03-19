@@ -32,9 +32,9 @@ public class VisitService {
 
     @Transactional(readOnly = true)
     public Visit findReservation(ReservationSearchRequest request) {
-        Visit find = repository.findByNameAndPhoneNum(request.getName(), request.getPhoneNum()).orElseThrow(() -> new VisitException("예약 정보 없음"));
+        Visit find = repository.findByNameAndPhoneNum(request.getName(), request.getPhoneNum()).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         if (securityUtils.nonMatches(request.getPassword(), find.getPassword()))
-            throw new VisitException("비밀번호 오류");
+            throw new VisitException("비밀번호가 다릅니다.");
         return find;
     }
 
@@ -45,13 +45,11 @@ public class VisitService {
 
     @Transactional
     public Visit updateReservation(Long id, Visit visit) {
-        Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보 없음"));
+        Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         if (!ObjectUtils.isEmpty(visit.getVisitDate()))
             find.setVisitDate(visit.getVisitDate());
         if (!ObjectUtils.isEmpty(visit.getVisitorCount()))
             find.setVisitorCount(visit.getVisitorCount());
-        if (!ObjectUtils.isEmpty(visit.getVisitorDescription()))
-            find.setVisitorDescription(visit.getVisitorDescription());
         if (!ObjectUtils.isEmpty(visit.getMemo()))
             find.setMemo(visit.getMemo());
         return find;
@@ -59,7 +57,7 @@ public class VisitService {
 
     @Transactional
     public void cancelReservation(Long id) {
-        Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보 없음"));
+        Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         repository.delete(find);
     }
 }

@@ -30,8 +30,6 @@ public class Visit {
     @Column(name = "VISIT_COUNT")
     @NotNull(message = "방문자 수 입력은 필수입니다.")
     private Long visitorCount;
-    @Column(name = "VISIT_DESCRIPTION")
-    private String visitorDescription;
     @Column(name = "MEMO")
     private String memo;
     @Column(name = "PASSWORD")
