@@ -36,9 +36,9 @@ public class AuthService {
     }
 
     private void verifyRequest(AuthRequest request) {
-        Visit find = visitRepository.findByNameAndPhoneNum(request.getName(), request.getPhoneNum()).orElseThrow(() -> new VisitException("예약 정보 없음"));
+        Visit find = visitRepository.findByNameAndPhoneNum(request.getName(), request.getPhoneNum()).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         if (securityUtils.nonMatches(request.getPassword(), find.getPassword()))
-            throw new VisitException("비밀번호 오류");
+            throw new VisitException("비밀번호가 다릅니다.");
     }
 
 }
