@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -29,23 +28,27 @@ public class AuthInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!(handler instanceof HandlerMethod method)) return true;
 
-        String token = request.getHeader("Authorization");
+        boolean requireAdmin = method.hasMethodAnnotation(RequireAdmin.class);
+        boolean requireAuth = method.hasMethodAnnotation(RequireAuth.class);
 
-        if (method.hasMethodAnnotation(RequireAdmin.class)) {
-            if (ObjectUtils.isEmpty(token))
-                throw new VisitException("인증 정보 없음", HttpStatus.UNAUTHORIZED);
-            if (!authService.verifyAdmin(token, adminPhoneNum))
-                throw new VisitException("관리자 권한 없음", HttpStatus.FORBIDDEN);
-            return true;
-        }
+        if (!requireAdmin && !requireAuth) return true;
 
-        if (method.hasMethodAnnotation(RequireAuth.class)) {
-            if (ObjectUtils.isEmpty(token))
-                throw new VisitException("인증 정보 없음", HttpStatus.UNAUTHORIZED);
-            if (!authService.verifyKey(token))
-                throw new VisitException("유효하지 않은 인증 정보", HttpStatus.UNAUTHORIZED);
-        }
+        String token = resolveToken(request);
+        if (token == null)
+            throw new VisitException("인증 정보 없음", HttpStatus.UNAUTHORIZED);
+
+        if (requireAdmin && !authService.verifyAdmin(token, adminPhoneNum))
+            throw new VisitException("관리자 권한 없음", HttpStatus.FORBIDDEN);
+
+        if (requireAuth && !authService.verifyKey(token))
+            throw new VisitException("유효하지 않은 인증 정보", HttpStatus.UNAUTHORIZED);
 
         return true;
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header == null || !header.startsWith("Bearer ")) return null;
+        return header.substring(7);
     }
 }
