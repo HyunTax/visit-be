@@ -30,11 +30,16 @@ public class Visit {
     @Column(name = "VISIT_COUNT")
     @NotNull(message = "방문자 수 입력은 필수입니다.")
     private Long visitorCount;
-    @Column(name = "MEMO")
-    private String memo;
     @Column(name = "PASSWORD")
     @NotNull(message = "비밀번호는 필수입니다.")
     private String password;
+    @Column(name = "ALLERGY_YN")
+    @NotNull(message = "알러지 여부는 필수입니다.")
+    private Boolean hasAllergy;
+    @Column(name = "ALLERGY_MEMO")
+    private String allergyMemo;
+    @Column(name = "MEMO")
+    private String memo;
 
     public static Visit convertEntity(ReservationRequest request, String... ignoreProperties) {
         Visit entity = new Visit();
