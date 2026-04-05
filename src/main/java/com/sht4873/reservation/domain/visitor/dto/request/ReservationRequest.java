@@ -12,6 +12,8 @@ public class ReservationRequest {
     private String phoneNum; // 전화번호
     private LocalDate visitDate; // 방문일
     private Long visitorCount; // 방문인원
-    private String memo; // 메모
     private String password; // 비밀번호
+    private Boolean hasAllergy;
+    private String allergyMemo;
+    private String memo; // 메모
 }

@@ -15,6 +15,8 @@ public class ReservationResponse {
     private String phoneNum; // 전화번호
     private LocalDate visitDate; // 방문일
     private Long visitorCount; // 방문인원
+    private Boolean hasAllergy;
+    private String allergyMemo;
     private String memo; // 메모
 
     public static ReservationResponse convert(Visit visit) {

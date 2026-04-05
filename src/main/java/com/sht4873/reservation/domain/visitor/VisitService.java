@@ -1,8 +1,8 @@
 package com.sht4873.reservation.domain.visitor;
 
-import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
 import com.sht4873.reservation.core.exception.VisitException;
 import com.sht4873.reservation.core.util.SecurityUtils;
+import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +26,8 @@ public class VisitService {
     public Visit reservation(Visit entity) {
         if (repository.findByNameAndPhoneNum(entity.getName(), entity.getPhoneNum()).isPresent())
             throw new VisitException("이미 예약된 정보가 존재합니다.");
+        if (ObjectUtils.isEmpty(entity.getHasAllergy()) && ObjectUtils.isEmpty(entity.getAllergyMemo()))
+            entity.setHasAllergy(false);
         entity.setPassword(securityUtils.encode(entity.getPassword()));
         return repository.save(entity);
     }
