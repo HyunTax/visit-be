@@ -36,14 +36,19 @@ public class Visit {
     @Column(name = "ALLERGY_YN")
     @NotNull(message = "알러지 여부는 필수입니다.")
     private Boolean hasAllergy;
-    @Column(name = "ALLERGY_MEMO")
-    private String allergyMemo;
     @Column(name = "MEMO")
     private String memo;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "STATUS")
+    private Status status;
 
     public static Visit convertEntity(ReservationRequest request, String... ignoreProperties) {
         Visit entity = new Visit();
         BeanUtils.copyProperties(request, entity, ignoreProperties);
         return entity;
+    }
+
+    public enum Status {
+        WAIT, CONFIRM, REJECT, CANCEL
     }
 }

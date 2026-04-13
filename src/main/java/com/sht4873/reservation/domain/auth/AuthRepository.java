@@ -1,6 +1,5 @@
 package com.sht4873.reservation.domain.auth;
 
-import com.sht4873.reservation.domain.auth.dto.request.AuthRequest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -18,9 +17,9 @@ public class AuthRepository {
         this.redisTemplate = redisTemplate;
     }
 
-    public String issueToken(AuthRequest request) {
+    public String issueToken(String name, String encryptedPhone) {
         String token = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(KEY_PREFIX + token, String.format("%s:%s", request.getName(), request.getPhoneNum()), TTL);
+        redisTemplate.opsForValue().set(KEY_PREFIX + token, String.format("%s:%s", name, encryptedPhone), TTL);
         return token;
     }
 
@@ -31,8 +30,7 @@ public class AuthRepository {
     public String getPhoneNumByToken(String token) {
         String value = redisTemplate.opsForValue().get(KEY_PREFIX + token);
         if (value == null) return null;
-        // value 형식: "{name}:{phoneNum}"
-        String[] parts = value.split(":");
+        String[] parts = value.split(":", 2);
         return parts.length == 2 ? parts[1] : null;
     }
 

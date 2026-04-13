@@ -24,17 +24,20 @@ public class VisitService {
 
     @Transactional
     public Visit reservation(Visit entity) {
-        if (repository.findByNameAndPhoneNum(entity.getName(), entity.getPhoneNum()).isPresent())
+        String encryptedPhone = securityUtils.encryptPhone(entity.getPhoneNum());
+        if (repository.findByNameAndPhoneNum(entity.getName(), encryptedPhone).isPresent())
             throw new VisitException("이미 예약된 정보가 존재합니다.");
-        if (ObjectUtils.isEmpty(entity.getHasAllergy()) && ObjectUtils.isEmpty(entity.getAllergyMemo()))
-            entity.setHasAllergy(false);
+        entity.setPhoneNum(encryptedPhone);
         entity.setPassword(securityUtils.encode(entity.getPassword()));
+        entity.setStatus(Visit.Status.WAIT);
         return repository.save(entity);
     }
 
     @Transactional(readOnly = true)
     public Visit findReservation(ReservationSearchRequest request) {
-        Visit find = repository.findByNameAndPhoneNum(request.getName(), request.getPhoneNum()).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
+        String encryptedPhone = securityUtils.encryptPhone(request.getPhoneNum());
+        Visit find = repository.findByNameAndPhoneNum(request.getName(), encryptedPhone)
+                .orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         if (securityUtils.nonMatches(request.getPassword(), find.getPassword()))
             throw new VisitException("비밀번호가 다릅니다.");
         return find;
@@ -60,6 +63,7 @@ public class VisitService {
     @Transactional
     public void cancelReservation(Long id) {
         Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
-        repository.delete(find);
+        find.setStatus(Visit.Status.CANCEL);
     }
+
 }

@@ -2,9 +2,11 @@ package com.sht4873.reservation.domain.visitor;
 
 import com.sht4873.reservation.core.annotation.RequireAdmin;
 import com.sht4873.reservation.core.annotation.RequireAuth;
+import com.sht4873.reservation.core.util.SecurityUtils;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationRequest;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
 import com.sht4873.reservation.domain.visitor.dto.response.ReservationResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,28 +17,33 @@ import java.util.List;
 public class VisitController {
 
     private final VisitService service;
+    private final SecurityUtils securityUtils;
 
-    public VisitController(VisitService service) {
+    @Autowired
+    public VisitController(VisitService service, SecurityUtils securityUtils) {
         this.service = service;
+        this.securityUtils = securityUtils;
     }
 
     @PostMapping
     public ResponseEntity<ReservationResponse> reservation(@RequestBody ReservationRequest request) {
         Visit reservation = service.reservation(Visit.convertEntity(request));
-        return ResponseEntity.ok(ReservationResponse.convert(reservation));
+        return ResponseEntity.ok(ReservationResponse.convert(reservation, securityUtils));
     }
 
     @RequireAuth
     @GetMapping("/find")
     public ResponseEntity<ReservationResponse> findReservation(ReservationSearchRequest request) {
         Visit reservation = service.findReservation(request);
-        return ResponseEntity.ok(ReservationResponse.convert(reservation));
+        return ResponseEntity.ok(ReservationResponse.convert(reservation, securityUtils));
     }
 
     @RequireAdmin
     @GetMapping("/all")
     public ResponseEntity<List<ReservationResponse>> findAll() {
-        List<ReservationResponse> responses = service.findAll().stream().map(ReservationResponse::convert).toList();
+        List<ReservationResponse> responses = service.findAll().stream()
+                .map(visit -> ReservationResponse.convert(visit, securityUtils))
+                .toList();
         return ResponseEntity.ok(responses);
     }
 
@@ -44,7 +51,7 @@ public class VisitController {
     @PutMapping("/{id}")
     public ResponseEntity<ReservationResponse> updateReservation(@PathVariable Long id, @RequestBody ReservationRequest request) {
         Visit reservation = service.updateReservation(id, Visit.convertEntity(request, "name", "phoneNum", "password"));
-        return ResponseEntity.ok(ReservationResponse.convert(reservation));
+        return ResponseEntity.ok(ReservationResponse.convert(reservation, securityUtils));
     }
 
     @RequireAuth
