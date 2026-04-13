@@ -1,5 +1,6 @@
 package com.sht4873.reservation.domain.visitor.dto.response;
 
+import com.sht4873.reservation.core.util.SecurityUtils;
 import com.sht4873.reservation.domain.visitor.Visit;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,13 +16,15 @@ public class ReservationResponse {
     private String phoneNum; // 전화번호
     private LocalDate visitDate; // 방문일
     private Long visitorCount; // 방문인원
-    private Boolean hasAllergy;
-    private String allergyMemo;
+    private Boolean hasAllergy; // 알러지 유무
     private String memo; // 메모
+    private String status; // 상태
 
-    public static ReservationResponse convert(Visit visit) {
+    public static ReservationResponse convert(Visit visit, SecurityUtils securityUtils) {
         ReservationResponse response = new ReservationResponse();
         BeanUtils.copyProperties(visit, response);
+        response.setPhoneNum(securityUtils.decryptPhone(visit.getPhoneNum()));
+        response.setStatus(visit.getStatus().name());
         return response;
     }
 }

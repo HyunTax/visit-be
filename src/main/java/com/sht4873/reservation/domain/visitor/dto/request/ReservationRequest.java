@@ -13,7 +13,6 @@ public class ReservationRequest {
     private LocalDate visitDate; // 방문일
     private Long visitorCount; // 방문인원
     private String password; // 비밀번호
-    private Boolean hasAllergy;
-    private String allergyMemo;
+    private Boolean hasAllergy; // 알러지 유무
     private String memo; // 메모
 }
