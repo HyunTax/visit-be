@@ -5,6 +5,7 @@ import com.sht4873.reservation.core.annotation.RequireAuth;
 import com.sht4873.reservation.core.util.SecurityUtils;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationRequest;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
+import com.sht4873.reservation.domain.visitor.dto.request.ReservationStatusRequest;
 import com.sht4873.reservation.domain.visitor.dto.response.ReservationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,15 +39,6 @@ public class VisitController {
         return ResponseEntity.ok(ReservationResponse.convert(reservation, securityUtils));
     }
 
-    @RequireAdmin
-    @GetMapping("/all")
-    public ResponseEntity<List<ReservationResponse>> findAll() {
-        List<ReservationResponse> responses = service.findAll().stream()
-                .map(visit -> ReservationResponse.convert(visit, securityUtils))
-                .toList();
-        return ResponseEntity.ok(responses);
-    }
-
     @RequireAuth
     @PutMapping("/{id}")
     public ResponseEntity<ReservationResponse> updateReservation(@PathVariable Long id, @RequestBody ReservationRequest request) {
@@ -60,4 +52,28 @@ public class VisitController {
         service.cancelReservation(id);
         return ResponseEntity.ok().build();
     }
+
+    @RequireAdmin
+    @GetMapping("/all")
+    public ResponseEntity<List<ReservationResponse>> findAll() {
+        List<ReservationResponse> responses = service.findAll().stream()
+                .map(visit -> ReservationResponse.convert(visit, securityUtils))
+                .toList();
+        return ResponseEntity.ok(responses);
+    }
+
+    @RequireAdmin
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<Void> confirm(@PathVariable Long id) {
+        service.confirm(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @RequireAdmin
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<Void> reject(@PathVariable Long id, @RequestBody ReservationStatusRequest request) {
+        service.reject(id, request);
+        return ResponseEntity.ok().build();
+    }
+
 }

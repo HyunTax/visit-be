@@ -34,7 +34,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             throw new VisitException("인증 정보 없음", HttpStatus.UNAUTHORIZED);
 
         if (requireAdmin && !authService.verifyAdminKey(token))
-            throw new VisitException("관리자 권한 없음", HttpStatus.FORBIDDEN);
+            throw new VisitException("유효하지 않은 관리자 인증 정보", HttpStatus.FORBIDDEN);
 
         if (requireAuth && !authService.verifyKey(token))
             throw new VisitException("유효하지 않은 인증 정보", HttpStatus.FORBIDDEN);

@@ -41,6 +41,8 @@ public class Visit {
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS")
     private Status status;
+    @Column(name = "STATUS_MEMO")
+    private String statusMemo;
 
     public static Visit convertEntity(ReservationRequest request, String... ignoreProperties) {
         Visit entity = new Visit();

@@ -3,6 +3,7 @@ package com.sht4873.reservation.domain.visitor;
 import com.sht4873.reservation.core.exception.VisitException;
 import com.sht4873.reservation.core.util.SecurityUtils;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
+import com.sht4873.reservation.domain.visitor.dto.request.ReservationStatusRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,11 +44,6 @@ public class VisitService {
         return find;
     }
 
-    @Transactional(readOnly = true)
-    public List<Visit> findAll() {
-        return repository.findAll();
-    }
-
     @Transactional
     public Visit updateReservation(Long id, Visit visit) {
         Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
@@ -66,4 +62,21 @@ public class VisitService {
         find.setStatus(Visit.Status.CANCEL);
     }
 
+    @Transactional(readOnly = true)
+    public List<Visit> findAll() {
+        return repository.findAll();
+    }
+
+    @Transactional
+    public void confirm(Long id) {
+        Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
+        find.setStatus(Visit.Status.CONFIRM);
+    }
+
+    @Transactional
+    public void reject(Long id, ReservationStatusRequest request) {
+        Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
+        find.setStatus(Visit.Status.REJECT);
+        find.setStatusMemo(request.getStatusMemo());
+    }
 }
