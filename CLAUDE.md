@@ -11,39 +11,57 @@
 ## Project Structure
 ```
 src/main/java/com/sht4873/reservation/
-├── core/                          # 공통 인프라
+├── core/
 │   ├── annotation/                # @RequireAuth, @RequireAdmin
 │   ├── config/                    # Jpa, Redis, Security, Web 설정
 │   ├── exception/                 # VisitException (커스텀 예외)
 │   ├── handler/                   # @RestControllerAdvice 전역 예외 처리
 │   ├── interceptor/               # AuthInterceptor (토큰 검증)
-│   └── util/                      # SecurityUtils (BCrypt)
+│   └── util/                      # SecurityUtils (BCrypt + AES)
 ├── domain/
-│   ├── auth/                      # 인증 (토큰 발급/검증, Redis 저장)
+│   ├── auth/
 │   │   ├── AuthController.java
 │   │   ├── AuthService.java
 │   │   ├── AuthRepository.java    # Redis 기반 (Spring Data X)
 │   │   └── dto/request/
-│   └── visitor/                   # 예약 관리 (CRUD)
+│   │       ├── AuthRequest.java         # name, phoneNum, password
+│   │       └── AdminAuthRequest.java    # password
+│   └── visitor/
 │       ├── Visit.java             # JPA Entity (테이블: VISITOR)
 │       ├── VisitController.java
 │       ├── VisitService.java
-│       ├── VisitRepository.java   # Spring Data JPA
+│       ├── VisitRepository.java
 │       └── dto/
+│           ├── request/
+│           │   ├── ReservationRequest.java       # name, phoneNum, visitDate, visitorCount, password, hasAllergy, memo
+│           │   ├── ReservationSearchRequest.java # name, phoneNum, password
+│           │   └── ReservationStatusRequest.java # statusMemo
+│           └── response/
+│               └── ReservationResponse.java      # password 제외, phoneNum 복호화
 └── ReservationApplication.java
 ```
 
-## Architecture
-- **Layered Architecture**: Controller → Service → Repository
-- **도메인별 패키지 분리**: `auth`, `visitor`
-- **core 패키지**: 도메인 횡단 관심사 (설정, 인터셉터, 예외, 유틸)
+## Entity: Visit (테이블: VISITOR)
+| 필드 | 컬럼 | 타입 | 설명 |
+|------|------|------|------|
+| id | ID | Long | PK, auto increment |
+| name | NAME | String | 방문자 이름 |
+| phoneNum | PHONE_NUM | String | AES-256 암호화 저장 |
+| visitDate | VISIT_DATE | LocalDate | 방문일 |
+| visitorCount | VISIT_COUNT | Long | 방문 인원 수 |
+| password | PASSWORD | String | BCrypt 인코딩 저장 |
+| hasAllergy | ALLERGY_YN | Boolean | 알러지 유무 |
+| memo | MEMO | String | 메모 (nullable) |
+| status | STATUS | Enum | WAIT / CONFIRM / REJECT / CANCEL |
+| statusMemo | STATUS_MEMO | String | 상태 메모, REJECT 시 사용 |
 
 ## API Endpoints
 
 ### 인증 (`/v1/visit/auth`)
 | Method | Path | Auth | 설명 |
 |--------|------|------|------|
-| POST | `/v1/visit/auth` | - | 토큰 발급 |
+| POST | `/v1/visit/auth` | - | 일반 유저 토큰 발급 |
+| POST | `/v1/visit/auth/admin` | - | 관리자 토큰 발급 (password만 전달) |
 
 ### 예약 (`/v1/visit/reservation`)
 | Method | Path | Auth | 설명 |
@@ -51,15 +69,27 @@ src/main/java/com/sht4873/reservation/
 | POST | `/` | - | 예약 생성 |
 | GET | `/find` | @RequireAuth | 내 예약 조회 |
 | GET | `/all` | @RequireAdmin | 전체 예약 조회 |
-| PUT | `/{id}` | @RequireAuth | 예약 수정 (이름/전화번호/비밀번호 변경 불가) |
-| DELETE | `/{id}` | @RequireAuth | 예약 취소 |
+| PUT | `/{id}` | @RequireAuth | 예약 수정 (visitDate, visitorCount, memo만 변경 가능) |
+| DELETE | `/{id}` | @RequireAuth | 예약 취소 (status → CANCEL) |
+| POST | `/{id}/confirm` | @RequireAdmin | 예약 승인 (status → CONFIRM) |
+| POST | `/{id}/reject` | @RequireAdmin | 예약 거절 (status → REJECT, statusMemo 저장) |
 
 ## Authentication
-- UUID 토큰을 Redis에 저장 (TTL 10분)
-- Redis key: `RESERVATION:AUTH:{token}` → value: `{name}:{phoneNum}`
+
+### 일반 유저
+- `POST /v1/visit/auth` : name + phoneNum + password → VISITOR 테이블 조회 후 BCrypt 검증 → 토큰 발급
+- Redis key: `RESERVATION:AUTH:{token}` → value: `{name}:{encryptedPhone}` (TTL 10분)
+- `@RequireAuth` 검증: `RESERVATION:AUTH:` prefix 토큰 존재 여부 확인
+
+### 관리자
+- `POST /v1/visit/auth/admin` : password만 전달 → `admin.phone`(yaml)으로 VISITOR 테이블 조회 → BCrypt 검증 → 토큰 발급
+- Redis key: `ADMIN:AUTH:{token}` → value: `{name}:{encryptedPhone}` (TTL 10분)
+- `@RequireAdmin` 검증: `ADMIN:AUTH:` prefix 토큰 존재 여부 확인
+- 관리자는 VISITOR 테이블에 일반 row로 저장, `admin.phone`으로 식별 (단일 관리자)
+
+### 공통
 - `Authorization: Bearer {token}` 헤더로 전달
-- `AuthInterceptor`가 `@RequireAuth`, `@RequireAdmin` 어노테이션 기반으로 검증
-- Admin 판별: 토큰의 전화번호와 `admin.phone` 프로퍼티 비교
+- 전화번호: AES-256/ECB 암호화 후 저장, 응답 시 복호화
 
 ## Conventions
 
@@ -72,8 +102,9 @@ src/main/java/com/sht4873/reservation/
 ### Patterns
 - **DI**: 생성자 주입 우선
 - **트랜잭션**: 쓰기 `@Transactional`, 읽기 `@Transactional(readOnly = true)`
-- **DTO 변환**: `BeanUtils.copyProperties()` 사용
+- **DTO 변환**: `BeanUtils.copyProperties()` 사용, `Visit.convertEntity(request, ignoreProperties...)`
 - **비밀번호**: BCrypt 인코딩, 응답 DTO에서 제외
+- **전화번호**: AES-256 암호화 저장, `SecurityUtils.encryptPhone` / `decryptPhone`
 - **예외**: `VisitException(message, HttpStatus)` → `BaseExceptionHandler`에서 처리
 - **Validation**: Entity에 Jakarta Validation 어노테이션 (@NotEmpty, @NotNull)
 
@@ -87,6 +118,8 @@ src/main/java/com/sht4873/reservation/
 - `application-local.yaml`: 로컬 개발 (port 8080)
 - JPA: `ddl-auto: none` (수동 스키마 관리), `show-sql: true`
 - CORS: `localhost:*` 허용, GET/POST/PUT/PATCH/DELETE
+- `admin.phone`: 관리자 전화번호 (VISITOR 테이블 관리자 row 식별용)
+- `security.aes-key`: 전화번호 AES-256 암호화 키 (32자, 운영 환경에서 반드시 변경)
 
 ## Build & Run
 ```bash

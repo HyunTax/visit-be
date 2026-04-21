@@ -44,6 +44,7 @@ public class AuthService {
     public Boolean verifyKey(String token) {
         return repository.existsByToken(token);
     }
+
     public Boolean verifyAdminKey(String token) {
         return repository.existsAdminByToken(token);
     }
