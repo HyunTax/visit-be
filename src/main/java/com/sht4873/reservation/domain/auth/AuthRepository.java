@@ -9,6 +9,7 @@ import java.util.UUID;
 @Repository
 public class AuthRepository {
     private static final String KEY_PREFIX = "RESERVATION:AUTH:";
+    private static final String ADMIN_PREFIX = "ADMIN:AUTH:";
     private static final Duration TTL = Duration.ofMinutes(10);
 
     private final StringRedisTemplate redisTemplate;
@@ -27,11 +28,14 @@ public class AuthRepository {
         return redisTemplate.hasKey(KEY_PREFIX + token);
     }
 
-    public String getPhoneNumByToken(String token) {
-        String value = redisTemplate.opsForValue().get(KEY_PREFIX + token);
-        if (value == null) return null;
-        String[] parts = value.split(":", 2);
-        return parts.length == 2 ? parts[1] : null;
+    public String issueAdminToken(String name, String encryptedPhone) {
+        String token = UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set(ADMIN_PREFIX + token, String.format("%s:%s", name, encryptedPhone), TTL);
+        return token;
+    }
+
+    public boolean existsAdminByToken(String token) {
+        return redisTemplate.hasKey(ADMIN_PREFIX + token);
     }
 
 }

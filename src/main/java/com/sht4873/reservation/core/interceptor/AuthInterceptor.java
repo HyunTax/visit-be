@@ -6,7 +6,6 @@ import com.sht4873.reservation.core.exception.VisitException;
 import com.sht4873.reservation.domain.auth.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -16,9 +15,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthInterceptor implements HandlerInterceptor {
 
     private final AuthService authService;
-
-    @Value("${admin.phone:010-0000-0000}")
-    private String adminPhoneNum;
 
     public AuthInterceptor(AuthService authService) {
         this.authService = authService;
@@ -37,11 +33,11 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (token == null)
             throw new VisitException("인증 정보 없음", HttpStatus.UNAUTHORIZED);
 
-        if (requireAdmin && !authService.verifyAdmin(token, adminPhoneNum))
+        if (requireAdmin && !authService.verifyAdminKey(token))
             throw new VisitException("관리자 권한 없음", HttpStatus.FORBIDDEN);
 
         if (requireAuth && !authService.verifyKey(token))
-            throw new VisitException("유효하지 않은 인증 정보", HttpStatus.UNAUTHORIZED);
+            throw new VisitException("유효하지 않은 인증 정보", HttpStatus.FORBIDDEN);
 
         return true;
     }
