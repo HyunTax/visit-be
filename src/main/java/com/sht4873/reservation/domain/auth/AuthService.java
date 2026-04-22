@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AuthService {
     private final AuthRepository repository;
@@ -17,7 +19,7 @@ public class AuthService {
     private final SecurityUtils securityUtils;
 
     @Value("${admin.phone:010-0000-0000}")
-    private String adminPhone;
+    private List<String> adminPhones;
 
     @Autowired
     public AuthService(AuthRepository repository, VisitRepository visitRepository, SecurityUtils securityUtils) {
@@ -33,12 +35,17 @@ public class AuthService {
     }
 
     public String issueAdminToken(AdminAuthRequest request) {
-        String encryptedPhone = securityUtils.encryptPhone(adminPhone);
-        Visit admin = visitRepository.findByPhoneNum(encryptedPhone)
-                .orElseThrow(() -> new VisitException("관리자 정보가 존재하지 않습니다."));
-        if (securityUtils.nonMatches(request.getPassword(), admin.getPassword()))
-            throw new VisitException("비밀번호가 다릅니다.");
-        return repository.issueAdminToken(admin.getName(), encryptedPhone);
+        List<String> encryptedPhones = adminPhones.stream()
+                .map(p -> securityUtils.encryptPhone(p.trim()))
+                .toList();
+        List<Visit> admins = visitRepository.findByPhoneNumIn(encryptedPhones);
+        if (admins.isEmpty()) throw new VisitException("관리자 정보가 존재하지 않습니다.");
+
+        Visit admin = admins.stream()
+                .filter(a -> securityUtils.matches(request.getPassword(), a.getPassword()))
+                .findFirst()
+                .orElseThrow(() -> new VisitException("비밀번호가 다릅니다."));
+        return repository.issueAdminToken(admin.getName(), admin.getPhoneNum());
     }
 
     public Boolean verifyKey(String token) {

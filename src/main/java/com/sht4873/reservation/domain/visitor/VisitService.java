@@ -51,6 +51,8 @@ public class VisitService {
             find.setVisitDate(visit.getVisitDate());
         if (!ObjectUtils.isEmpty(visit.getVisitorCount()))
             find.setVisitorCount(visit.getVisitorCount());
+        if (!ObjectUtils.isEmpty(visit.getHasAllergy()))
+            find.setHasAllergy(visit.getHasAllergy());
         if (!ObjectUtils.isEmpty(visit.getMemo()))
             find.setMemo(visit.getMemo());
         return find;
