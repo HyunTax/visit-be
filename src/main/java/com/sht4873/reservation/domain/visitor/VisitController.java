@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -24,6 +25,11 @@ public class VisitController {
     public VisitController(VisitService service, SecurityUtils securityUtils) {
         this.service = service;
         this.securityUtils = securityUtils;
+    }
+
+    @GetMapping("/calender/reservced")
+    public ResponseEntity<List<LocalDate>> findAllReservedDates() {
+        return ResponseEntity.ok(service.findAllReservedDates());
     }
 
     @PostMapping
@@ -48,8 +54,8 @@ public class VisitController {
 
     @RequireAuth
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelReservation(@PathVariable Long id) {
-        service.cancelReservation(id);
+    public ResponseEntity<Void> cancelReservation(@PathVariable Long id, @RequestBody ReservationStatusRequest request) {
+        service.cancelReservation(id, request);
         return ResponseEntity.ok().build();
     }
 
