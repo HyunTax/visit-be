@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -21,6 +22,12 @@ public class VisitService {
     public VisitService(SecurityUtils securityUtils, VisitRepository repository) {
         this.repository = repository;
         this.securityUtils = securityUtils;
+    }
+
+    @Transactional(readOnly = true)
+    public List<LocalDate> findAllReservedDates() {
+        return repository.findAllByStatusIn(List.of(Visit.Status.WAIT, Visit.Status.CONFIRM))
+                .stream().map(Visit::getVisitDate).toList();
     }
 
     @Transactional
@@ -59,9 +66,10 @@ public class VisitService {
     }
 
     @Transactional
-    public void cancelReservation(Long id) {
+    public void cancelReservation(Long id, ReservationStatusRequest request) {
         Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         find.setStatus(Visit.Status.CANCEL);
+        find.setStatusMemo(request.getStatusMemo());
     }
 
     @Transactional(readOnly = true)
