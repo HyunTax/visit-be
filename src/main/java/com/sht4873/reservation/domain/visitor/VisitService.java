@@ -1,5 +1,6 @@
 package com.sht4873.reservation.domain.visitor;
 
+import com.sht4873.reservation.core.component.MailComponent;
 import com.sht4873.reservation.core.exception.VisitException;
 import com.sht4873.reservation.core.util.SecurityUtils;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
@@ -17,11 +18,13 @@ public class VisitService {
 
     private final VisitRepository repository;
     private final SecurityUtils securityUtils;
+    private final MailComponent mailComponent;
 
     @Autowired
-    public VisitService(SecurityUtils securityUtils, VisitRepository repository) {
+    public VisitService(SecurityUtils securityUtils, VisitRepository repository, MailComponent mailComponent) {
         this.repository = repository;
         this.securityUtils = securityUtils;
+        this.mailComponent = mailComponent;
     }
 
     @Transactional(readOnly = true)
@@ -38,7 +41,9 @@ public class VisitService {
         entity.setPhoneNum(encryptedPhone);
         entity.setPassword(securityUtils.encode(entity.getPassword()));
         entity.setStatus(Visit.Status.WAIT);
-        return repository.save(entity);
+        Visit reservation = repository.save(entity);
+        sendAdminMail(reservation);
+        return reservation;
     }
 
     @Transactional(readOnly = true)
@@ -88,5 +93,9 @@ public class VisitService {
         Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         find.setStatus(Visit.Status.REJECT);
         find.setStatusMemo(request.getStatusMemo());
+    }
+
+    private void sendAdminMail(Visit reservation) {
+        mailComponent.sendAdminMail(reservation);
     }
 }
