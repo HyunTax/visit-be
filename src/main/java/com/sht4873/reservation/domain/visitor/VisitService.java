@@ -1,11 +1,12 @@
 package com.sht4873.reservation.domain.visitor;
 
-import com.sht4873.reservation.core.component.MailComponent;
+import com.sht4873.reservation.core.enums.MailType;
+import com.sht4873.reservation.core.event.MailEvent;
 import com.sht4873.reservation.core.exception.VisitException;
 import com.sht4873.reservation.core.util.SecurityUtils;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationSearchRequest;
 import com.sht4873.reservation.domain.visitor.dto.request.ReservationStatusRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -18,13 +19,12 @@ public class VisitService {
 
     private final VisitRepository repository;
     private final SecurityUtils securityUtils;
-    private final MailComponent mailComponent;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    public VisitService(SecurityUtils securityUtils, VisitRepository repository, MailComponent mailComponent) {
+    public VisitService(SecurityUtils securityUtils, VisitRepository repository, ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
         this.securityUtils = securityUtils;
-        this.mailComponent = mailComponent;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +42,7 @@ public class VisitService {
         entity.setPassword(securityUtils.encode(entity.getPassword()));
         entity.setStatus(Visit.Status.WAIT);
         Visit reservation = repository.save(entity);
-        sendAdminMail(reservation);
+        eventPublisher.publishEvent(new MailEvent(reservation, MailType.REQUEST));
         return reservation;
     }
 
@@ -67,6 +67,7 @@ public class VisitService {
             find.setHasAllergy(visit.getHasAllergy());
         if (!ObjectUtils.isEmpty(visit.getMemo()))
             find.setMemo(visit.getMemo());
+        eventPublisher.publishEvent(new MailEvent(find, MailType.CHANGE));
         return find;
     }
 
@@ -75,6 +76,7 @@ public class VisitService {
         Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         find.setStatus(Visit.Status.CANCEL);
         find.setStatusMemo(request.getStatusMemo());
+        eventPublisher.publishEvent(new MailEvent(find, MailType.CANCEL));
     }
 
     @Transactional(readOnly = true)
@@ -93,9 +95,5 @@ public class VisitService {
         Visit find = repository.findById(id).orElseThrow(() -> new VisitException("예약 정보가 존재하지 않습니다."));
         find.setStatus(Visit.Status.REJECT);
         find.setStatusMemo(request.getStatusMemo());
-    }
-
-    private void sendAdminMail(Visit reservation) {
-        mailComponent.sendAdminMail(reservation);
     }
 }
