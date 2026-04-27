@@ -7,13 +7,17 @@
 - **Java 25** / **Spring Boot 4.0.3** / **Maven**
 - **MySQL 8** (JPA/Hibernate 7), **Redis** (Lettuce)
 - **Lombok**, **spring-security-crypto** (BCrypt), **Jakarta Validation**
+- **JavaMailSender** (HTML 메일 발송)
 
 ## Project Structure
 ```
 src/main/java/com/sht4873/reservation/
 ├── core/
 │   ├── annotation/                # @RequireAuth, @RequireAdmin
-│   ├── config/                    # Jpa, Redis, Security, Web 설정
+│   ├── component/                 # MailComponent (메일 발송), MailEventListener (이벤트 리스너)
+│   ├── config/                    # Jpa(@EnableAsync), Redis, Security, Web 설정
+│   ├── enums/                     # MailType (REQUEST / CHANGE / CANCEL)
+│   ├── event/                     # MailEvent record
 │   ├── exception/                 # VisitException (커스텀 예외)
 │   ├── handler/                   # @RestControllerAdvice 전역 예외 처리
 │   ├── interceptor/               # AuthInterceptor (토큰 검증)
@@ -53,7 +57,7 @@ src/main/java/com/sht4873/reservation/
 | hasAllergy | ALLERGY_YN | Boolean | 알러지 유무 |
 | memo | MEMO | String | 메모 (nullable) |
 | status | STATUS | Enum | WAIT / CONFIRM / REJECT / CANCEL |
-| statusMemo | STATUS_MEMO | String | 상태 메모, REJECT 시 사용 |
+| statusMemo | STATUS_MEMO | String | 상태 메모, REJECT/CANCEL 시 사용 |
 
 ## API Endpoints
 
@@ -73,6 +77,29 @@ src/main/java/com/sht4873/reservation/
 | DELETE | `/{id}` | @RequireAuth | 예약 취소 (status → CANCEL) |
 | POST | `/{id}/confirm` | @RequireAdmin | 예약 승인 (status → CONFIRM) |
 | POST | `/{id}/reject` | @RequireAdmin | 예약 거절 (status → REJECT, statusMemo 저장) |
+
+## Mail System
+
+예약 생성/수정/취소 시 관리자에게 HTML 메일 자동 발송.
+
+### 흐름
+```
+VisitService → publishEvent(MailEvent)
+    → [트랜잭션 커밋]
+        → MailEventListener.handle() (@Async + @TransactionalEventListener(AFTER_COMMIT))
+            → MailComponent.sendAdminMail()
+                → admin.mail 목록 각각에 HTML 메일 발송
+```
+
+### MailType
+| 타입 | 발송 시점 |
+|------|-----------|
+| REQUEST | 예약 생성 |
+| CHANGE | 예약 수정 |
+| CANCEL | 예약 취소 |
+
+- 메일 실패 시 트랜잭션 롤백 없이 에러 로그만 기록 (`log.error` + 스택트레이스)
+- CANCEL 타입은 메모 영역에 `statusMemo` (취소 사유) 표시, 나머지는 `memo` 표시
 
 ## Authentication
 
@@ -107,6 +134,7 @@ src/main/java/com/sht4873/reservation/
 - **전화번호**: AES-256 암호화 저장, `SecurityUtils.encryptPhone` / `decryptPhone`
 - **예외**: `VisitException(message, HttpStatus)` → `BaseExceptionHandler`에서 처리
 - **Validation**: Entity에 Jakarta Validation 어노테이션 (@NotEmpty, @NotNull)
+- **비동기 메일**: `ApplicationEventPublisher.publishEvent(MailEvent)` → `@TransactionalEventListener(AFTER_COMMIT)` + `@Async` → 트랜잭션 커밋 후 별도 스레드 발송
 
 ### Error Response Format
 ```json
@@ -119,7 +147,10 @@ src/main/java/com/sht4873/reservation/
 - JPA: `ddl-auto: none` (수동 스키마 관리), `show-sql: true`
 - CORS: `localhost:*` 허용, GET/POST/PUT/PATCH/DELETE
 - `admin.phone`: 관리자 전화번호 (VISITOR 테이블 관리자 row 식별용)
+- `admin.mail`: 관리자 메일 주소 목록 (`List<String>`, 다중 수신 가능)
+- `admin.page-url`: 관리자 페이지 URL (메일 템플릿 내 링크)
 - `security.aes-key`: 전화번호 AES-256 암호화 키 (32자, 운영 환경에서 반드시 변경)
+- `spring.mail.*`: JavaMailSender SMTP 설정
 
 ## Build & Run
 ```bash

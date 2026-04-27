@@ -32,16 +32,6 @@ build/
 .vscode/
 
 # =====================
-# Application Config (SECRET)
-# =====================
-application.properties
-application.yaml
-application.yml
-application-*.properties
-application-*.yml
-application-*.yaml
-
-# =====================
 # AWS
 # =====================
 .aws/
